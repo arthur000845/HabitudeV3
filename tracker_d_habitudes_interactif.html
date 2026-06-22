@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Discipline - Tracker d'Habitudes Premium</title>
+    <!-- Tailwind CSS pour un rendu épuré et premium -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .progress-bar-glow {
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 min-h-screen pb-24 selection:bg-indigo-100">
+
+    <div id="archive-banner" class="bg-amber-500 text-white font-bold text-center py-3.5 px-4 hidden sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <span class="text-xs sm:text-sm"><i class="fa-solid fa-eye mr-2"></i> Mode Archive : Vous visualisez les données de la <strong id="archive-banner-week">Semaine 1</strong> (Lecture seule)</span>
+        <button onclick="exitArchiveMode()" class="bg-white text-amber-700 px-3 py-1 rounded-xl text-xs font-black shadow-xs hover:bg-amber-50 transition-all">
+            Retourner à l'actif <i class="fa-solid fa-arrow-right-from-bracket ml-1"></i>
+        </button>
+    </div>
+
+    <header class="max-w-7xl mx-auto px-4 pt-10 pb-6">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <!-- Section Titre -->
+            <div class="space-y-2 max-w-2xl">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-3xl font-black text-slate-950 tracking-tight">Tracker habitudes</h1>
+                    <span class="bg-indigo-50 text-indigo-600 border border-indigo-200 text-xs px-2.5 py-0.5 rounded-full font-bold">V1</span>
+                </div>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    « Nous sommes la somme de nos actions régulières. » Inspirez-vous du système de récompense et de progression continue pour construire la meilleure version de vous-même.
+                </p>
+            </div>
+
+            <!-- Bloc Statistiques Réelles -->
+            <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm min-w-[320px] sm:min-w-[380px] self-stretch lg:self-auto">
+                <div class="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4 text-center">
+                    <div>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">RECORD</p>
+                        <p class="text-xl font-black text-indigo-600" id="stat-record">45%</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">PIRE SCORE</p>
+                        <p class="text-xl font-black text-red-500" id="stat-worst">0%</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">MOYENNE</p>
+                        <p class="text-xl font-black text-emerald-500" id="stat-average">23%</p>
+                    </div>
+                </div>
+                <div class="pt-3 pl-2 flex justify-between items-center pr-2">
+                    <div>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">TEMPS PERDU</p>
+                        <p class="text-lg font-black text-amber-600 mt-0.5" id="stat-wasted-time">280 min</p>
+                    </div>
+                    <!-- Boutons Export/Import rapides -->
+                    <div class="flex gap-1.5" id="import-export-actions">
+                        <button onclick="exportData()" title="Exporter mes données" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 flex items-center justify-center transition-all text-xs">
+                            <i class="fa-solid fa-file-export"></i>
+                        </button>
+                        <button onclick="triggerImport()" title="Importer des données" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 flex items-center justify-center transition-all text-xs">
+                            <i class="fa-solid fa-file-import"></i>
+                        </button>
+                        <input type="file" id="import-file-input" class="hidden" onchange="importData(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 space-y-6">
+
+        <section class="bg-[#111827] text-white rounded-3xl p-6 shadow-lg relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_50%)]"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-2xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-extrabold text-slate-400 tracking-widest uppercase">RANG DE PROGRESSION</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black px-2.5 py-0.5 rounded-lg" id="rank-badge">Rang 1</span>
+                            <h2 class="text-base font-black tracking-tight text-slate-200" id="rank-title">Débutant • Bronze</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 w-full md:max-w-2xl">
+                    <div class="flex justify-between items-center mb-1.5 text-xs font-bold text-slate-400">
+                        <span id="xp-text">290 / 300 XP</span>
+                        <span id="xp-percentage">97%</span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                        <div class="h-full bg-gradient-to-r from-violet-500 to-indigo-600 transition-all duration-500 progress-bar-glow" id="xp-bar" style="width: 97%"></div>
+                    </div>
+                </div>
+
+                <button onclick="openRanksModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-2 self-stretch md:self-auto justify-center">
+                    <i class="fa-solid fa-circle-info"></i> Voir les Rangs
+                </button>
+            </div>
+        </section>
+
+        <nav class="flex border-b border-slate-200 gap-1 sm:gap-6 overflow-x-auto scrollbar-none">
+            <button onclick="switchTab('plan-attaque')" id="tab-plan-attaque" class="tab-btn px-4 py-3 text-sm font-extrabold text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-calendar-check"></i> Plan d'Attaque
+            </button>
+            <button onclick="switchTab('evaluation-kanban')" id="tab-evaluation-kanban" class="tab-btn px-4 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-table-columns"></i> Évaluation Kanban
+            </button>
+            <button onclick="switchTab('historique')" id="tab-historique" class="tab-btn px-4 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-clock-rotate-left"></i> Historique
+            </button>
+            <button onclick="switchTab('tutoriel')" id="tab-tutoriel" class="tab-btn px-4 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-book-open"></i> Tutoriel & Formules Notion
+            </button>
+        </nav>
+
+        <div class="space-y-6">
+
+            <!-- =================== ONGLET 1: PLAN D'ATTAQUE =================== -->
+            <div id="panel-plan-attaque" class="tab-panel space-y-6">
+                
+                <!-- Grille des cartes de réflexion (Capture 11.34.18.png) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                    
+                    <!-- Carte 1 -->
+                    <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2 text-red-600 font-extrabold text-sm">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <h3>Difficultés / Erreurs passées</h3>
+                        </div>
+                        <textarea id="ref-difficulties" oninput="saveReflections()" placeholder="Rédigez ici les erreurs de la semaine pour ne plus les reproduire..." class="w-full h-32 bg-slate-50/50 border border-slate-100 rounded-2xl p-3 text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none resize-none placeholder:text-slate-400"></textarea>
+                    </div>
+
+                    <!-- Carte 2 -->
+                    <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2 text-orange-500 font-extrabold text-sm">
+                            <i class="fa-solid fa-shuffle"></i>
+                            <h3>Imprévus / Aléas de la semaine</h3>
+                        </div>
+                        <textarea id="ref-events" oninput="saveReflections()" placeholder="Qu'est-ce qui a bousculé votre planning cette semaine ?" class="w-full h-32 bg-slate-50/50 border border-slate-100 rounded-2xl p-3 text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none resize-none placeholder:text-slate-400"></textarea>
+                    </div>
+
+                    <!-- Carte 3 -->
+                    <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2 text-indigo-600 font-extrabold text-sm">
+                            <i class="fa-solid fa-bullseye"></i>
+                            <h3>Stratégie pour battre le record</h3>
+                        </div>
+                        <textarea id="ref-strategy" oninput="saveReflections()" placeholder="Quels ajustements ou hacks allez-vous mettre en place pour la suite ?" class="w-full h-32 bg-slate-50/50 border border-slate-100 rounded-2xl p-3 text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none resize-none placeholder:text-slate-400"></textarea>
+                    </div>
+
+                    <!-- Carte 4 (Ce que j'ai appris) -->
+                    <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-indigo-600 font-extrabold text-sm">
+                                <i class="fa-solid fa-brain"></i>
+                                <h3>Ce que j'ai appris</h3>
+                            </div>
+                            <span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase">🧠 Repos cognitif</span>
+                        </div>
+                        
+                        <div class="flex gap-2" id="learning-input-block">
+                            <input type="text" id="add-learning-input" placeholder="J'ai appris que... (+15 XP)" class="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none">
+                            <button onclick="addLearning()" id="add-learning-btn" class="w-8 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition-all shrink-0">
+                                <i class="fa-solid fa-plus text-sm"></i>
+                            </button>
+                        </div>
+
+                        <div class="h-20 overflow-y-auto custom-scrollbar space-y-1.5" id="learnings-list-container">
+                            <!-- Rempli par JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900 tracking-tight">📅 PLANIFICATEUR & GRILLE D'EFFICACITÉ</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Cliquez sur un jour pour attribuer la note d'efficacité ou l'exempter (`-`) afin d'éviter le travail bâclé. Modifiez les titres directement dans le tableau !</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <button onclick="createNewHabit()" id="direct-add-habit-btn" class="px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-[10px] rounded-xl font-extrabold tracking-wider uppercase transition-all shadow-sm active:scale-95 flex items-center gap-1.5 shrink-0">
+                                <i class="fa-solid fa-plus"></i> Ajouter une habitude
+                            </button>
+                            <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] px-3 py-1.5 rounded-xl font-black tracking-wider uppercase shrink-0" id="current-completion-percentage">Complétion : 0%</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-100 text-left">
+                                    <th class="py-3.5 px-4 text-xs font-extrabold text-slate-400 uppercase tracking-wider w-1/3">Habitudes (Modifiables inline ✏️)</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Lun</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Mar</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Mer</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Jeu</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Ven</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Sam</th>
+                                    <th class="py-3.5 px-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-center w-[8%]">Dim</th>
+                                    <th class="py-3.5 px-4 text-xs font-extrabold text-slate-400 uppercase tracking-wider text-right w-[15%]">Efficacité Moy.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="habits-table-body" class="divide-y divide-slate-100">
+                                <!-- Rempli dynamiquement -->
+                            </tbody>
+                            <tfoot id="habits-table-foot">
+                                <!-- Ligne "Moyenne quotidienne" calculée dynamiquement -->
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Légende des efficacités -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-wrap gap-4 text-xs font-bold text-slate-500 justify-center sm:justify-start">
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-slate-200 border border-slate-300"></span> Non réalisé (0 XP)</div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center font-black text-[9px] border border-slate-400">-</span> Exempté (Exclu de la moyenne)</div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span> Très bien (+15 XP)</div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-sky-500"></span> Correctement (+10 XP)</div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-amber-500"></span> Partiellement (+5 XP)</div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span> Inefficace (+2 XP)</div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-4" id="personalization-main-card">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-md font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-indigo-600"></i>
+                            Gérer vos Habitudes (Configuration globale)
+                        </h3>
+                        <button onclick="togglePersonalization()" id="personalize-toggle-btn" class="text-xs font-black text-indigo-600 hover:underline">Masquer <i class="fa-solid fa-chevron-up"></i></button>
+                    </div>
+
+                    <div id="personalization-container" class="space-y-4 transition-all duration-300">
+                        <p class="text-xs text-slate-400">Pour réorganiser ou modifier finement votre base de données d'habitudes. Les changements se propagent immédiatement.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="personalization-grid">
+                            <!-- Liste dynamique -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation et Archivage de la semaine active -->
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm" id="validate-week-panel">
+                    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">Temps perdu cette semaine (min)</label>
+                                <div class="relative">
+                                    <input type="number" id="wasted-time-input" placeholder="Ex: 120" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <div class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-xs pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">Récompense visée</label>
+                                <div class="relative">
+                                    <input type="text" id="target-reward-input" placeholder="Ex: Un bon resto, un ciné..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <div class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-xs pointer-events-none"><i class="fa-solid fa-gift"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-end shrink-0">
+                            <button id="archive-week-btn" onclick="validateWeek()" class="w-full md:w-auto px-6 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-square-check text-sm"></i>
+                                <span>ARCHIVER & PASSER À LA SEMAINE SUIVANTE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- =================== ONGLET 2: ÉVALUATION KANBAN =================== -->
+            <div id="panel-evaluation-kanban" class="tab-panel hidden space-y-6">
+                
+                <div class="bg-blue-50 border border-blue-100 rounded-3xl p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 text-base">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-extrabold text-indigo-950">La Méthode d'Évaluation de Kaizen Lane</h4>
+                        <p class="text-xs text-indigo-900 leading-relaxed">
+                            Utilisez le tableau Kanban ci-dessous pour suivre la maîtrise globale de vos habitudes. <strong>Ne créez pas de nouvelle version (V2, V3...)</strong> en ajoutant de nouvelles habitudes tant que la totalité de vos habitudes actuelles n'est pas stabilisée dans les colonnes <strong>Pas mal</strong> ou <strong>Excellent</strong>. Restez focalisé sur l'ancrage !
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Colonnes Kanban -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+                    
+                    <!-- Colonne Mauvais -->
+                    <div class="bg-slate-100/60 border border-slate-200/50 rounded-3xl p-4 flex flex-col min-h-[500px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="bg-red-100 text-red-700 text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-red-600 inline-block animate-pulse"></span> Mauvais
+                            </span>
+                            <span id="count-mauvais" class="text-xs font-black text-slate-400">0</span>
+                        </div>
+                        <div id="kanban-mauvais" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                            <!-- Cartes injectées par JS -->
+                        </div>
+                    </div>
+
+                    <!-- Colonne Moyen -->
+                    <div class="bg-slate-100/60 border border-slate-200/50 rounded-3xl p-4 flex flex-col min-h-[500px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="bg-amber-100 text-amber-700 text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Moyen
+                            </span>
+                            <span id="count-moyen" class="text-xs font-black text-slate-400">0</span>
+                        </div>
+                        <div id="kanban-moyen" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                            <!-- Cartes injectées par JS -->
+                        </div>
+                    </div>
+
+                    <!-- Colonne Pas Mal -->
+                    <div class="bg-slate-100/60 border border-slate-200/50 rounded-3xl p-4 flex flex-col min-h-[500px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="bg-emerald-100 text-emerald-700 text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Pas Mal
+                            </span>
+                            <span id="count-pasmal" class="text-xs font-black text-slate-400">0</span>
+                        </div>
+                        <div id="kanban-pasmal" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                            <!-- Cartes injectées par JS -->
+                        </div>
+                    </div>
+
+                    <!-- Colonne Excellent -->
+                    <div class="bg-slate-100/60 border border-slate-200/50 rounded-3xl p-4 flex flex-col min-h-[500px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="bg-purple-100 text-purple-700 text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-purple-500 inline-block"></span> Excellent
+                            </span>
+                            <span id="count-excellent" class="text-xs font-black text-slate-400">0</span>
+                        </div>
+                        <div id="kanban-excellent" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                            <!-- Cartes injectées par JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =================== ONGLET 3: HISTORIQUE =================== -->
+            <div id="panel-historique" class="tab-panel hidden space-y-6">
+                
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" id="new-version-action-block">
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-code-fork text-indigo-600"></i>
+                            Créer la Version Suivante de vous-même
+                        </h4>
+                        <p class="text-xs text-slate-400 max-w-xl">
+                            Vous maîtrisez toutes vos habitudes actuelles ? Félicitations ! Vous pouvez passer à l'étape supérieure en créant une nouvelle version (ex: V2). Cela archivera vos scores actuels, réinitialisera vos records et vous permettra de configurer de nouvelles habitudes plus avancées sans polluer votre historique.
+                        </p>
+                    </div>
+                    <button onclick="triggerNewVersion()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shrink-0 flex items-center gap-1.5 self-stretch sm:self-auto justify-center">
+                        <i class="fa-solid fa-plus"></i> Lancer la Nouvelle Version
+                    </button>
+                </div>
+
+                <!-- Tableau Historique -->
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div class="space-y-1">
+                            <h3 class="text-sm font-black text-slate-950 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-indigo-600"></i>
+                                Historique des scores par semaine
+                            </h3>
+                            <p class="text-[11px] text-slate-400">💡 Cliquez sur une ligne de semaine ci-dessous pour charger et visualiser ses détails !</p>
+                        </div>
+                        <button onclick="clearAllHistory()" class="text-red-500 font-extrabold text-xs hover:underline transition-all">Effacer tout l'historique</button>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                                    <th class="py-3 px-4">SEMAINE</th>
+                                    <th class="py-3 px-4 text-center">VERSION</th>
+                                    <th class="py-3 px-4">DATE DE VALIDATION</th>
+                                    <th class="py-3 px-4">RÉCOMPENSE VISÉE</th>
+                                    <th class="py-3 px-4 text-center">TEMPS PERDU</th>
+                                    <th class="py-3 px-4 text-right">SCORE FINAL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                                <!-- Données d'historique cliquables -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- =================== ONGLET 4: TUTORIEL & FORMULES =================== -->
+            <div id="panel-tutoriel" class="tab-panel hidden space-y-6">
+                
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-4">
+                    <h3 class="text-base font-black text-slate-950 flex items-center gap-2">
+                        <i class="fa-solid fa-book text-indigo-600"></i>
+                        Comment fonctionne votre RPG de Discipline ?
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-600 leading-relaxed">
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500"></i> Gain d'Expérience (XP)</h4>
+                            <p>Toutes vos actions quotidiennes de discipline alimentent votre jauge d'XP :</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Notez l'efficacité d'une habitude pour la journée en cliquant sur la cellule correspondante.</li>
+                                <li>Un niveau de réalisation <strong>Très bien</strong> vous octroie <strong>+15 XP</strong>.</li>
+                                <li>Un niveau <strong>Correctement</strong> vous octroie <strong>+10 XP</strong>.</li>
+                                <li>Un niveau <strong>Partiellement</strong> vous octroie <strong>+5 XP</strong>.</li>
+                                <li>Un niveau <strong>Inefficace (bâclé)</strong> vous octroie <strong>+2 XP</strong>.</li>
+                                <li>Une journée marquée comme **Exemptée** ne rapporte pas de points de discipline mais n'impacte pas vos statistiques moyennes quotidiennes de réussite.</li>
+                                <li>Consignez un enseignement ou une découverte importante dans le panneau "Ce que j'ai appris" pour gagner immédiatement <strong>+15 XP</strong>.</li>
+                            </ul>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-medal text-indigo-600"></i> Paliers de Rangs</h4>
+                            <p>Atteindre les sommets de la discipline demande de la régularité. Voici les paliers de transition :</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><strong>Rang 1 : Débutant • Bronze</strong> (Seuil : 300 XP)</li>
+                                <li><strong>Rang 2 : Débutant • Argent</strong> (Seuil : 400 XP)</li>
+                                <li><strong>Rang 3 : Débutant • Or</strong> (Seuil : 500 XP)</li>
+                                <li><strong>Rang 4 : Initié • Bronze</strong> (Seuil : 600 XP)</li>
+                                <li><strong>Rang 5 : Initié • Argent</strong> (Seuil : 700 XP)</li>
+                                <li><strong>Rang 6 : Initié • Or</strong> (Seuil : 850 XP)</li>
+                                <li><strong>Rang 7 : Meneur • Bronze</strong> (Seuil : 1000 XP)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- =================== MODAL: SÉLECTEUR D'EFFICACITÉ (AU CLIC) =================== -->
+    <div id="efficiency-selector-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+            <h3 class="font-black text-slate-950 text-base" id="efficiency-habit-title">Nom de l'habitude</h3>
+            <p class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mb-5" id="efficiency-day-title">Jour sélectionné</p>
+            
+            <div class="space-y-2">
+                <button onclick="selectEfficiency('très bien')" class="w-full flex items-center justify-between p-3 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 rounded-2xl text-left text-xs text-emerald-900 font-bold transition-all">
+                    <span class="flex items-center gap-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span> 🔥 Très bien</span>
+                    <span class="text-[10px] text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-black">+15 XP</span>
+                </button>
+                <button onclick="selectEfficiency('correctement')" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100/80 border border-sky-200 rounded-2xl text-left text-xs text-sky-900 font-bold transition-all">
+                    <span class="flex items-center gap-2.5"><span class="w-3.5 h-3.5 rounded-full bg-sky-500"></span> ⚡ Correctement</span>
+                    <span class="text-[10px] text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full font-black">+10 XP</span>
+                </button>
+                <button onclick="selectEfficiency('partiellement')" class="w-full flex items-center justify-between p-3 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 rounded-2xl text-left text-xs text-amber-900 font-bold transition-all">
+                    <span class="flex items-center gap-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500"></span> ⚠️ Partiellement</span>
+                    <span class="text-[10px] text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full font-black">+5 XP</span>
+                </button>
+                <button onclick="selectEfficiency('inefficace')" class="w-full flex items-center justify-between p-3 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 rounded-2xl text-left text-xs text-rose-900 font-bold transition-all">
+                    <span class="flex items-center gap-2.5"><span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span> ❌ Inefficace / Bâclé</span>
+                    <span class="text-[10px] text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full font-black">+2 XP</span>
+                </button>
+                <!-- Option Exempté d'après Capture 12.31.30.png -->
+                <button onclick="selectEfficiency('exempté')" class="w-full flex items-center justify-between p-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-2xl text-left text-xs text-slate-700 font-bold transition-all">
+                    <span class="flex items-center gap-2.5"><span class="w-3.5 h-3.5 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center font-black text-[11px] border border-slate-400">-</span> ➖ Exempté (Exclu de la moyenne)</span>
+                    <span class="text-[10px] text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-full font-black">0 XP</span>
+                </button>
+                <button onclick="selectEfficiency('none')" class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl text-left text-xs text-slate-700 font-bold transition-all">
+                    <span class="flex items-center gap-2.5"><span class="w-3.5 h-3.5 rounded-full bg-slate-300"></span> ⚪ Décocher / Non réalisé</span>
+                    <span class="text-[10px] text-slate-400 bg-slate-200/50 px-2 py-0.5 rounded-full font-black">0 XP</span>
+                </button>
+            </div>
+            
+            <button onclick="closeEfficiencySelector()" class="w-full mt-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold rounded-xl text-xs transition-all">Fermer</button>
+        </div>
+    </div>
+
+    <!-- =================== MODAL: EXPLICATIONS DES RANGS =================== -->
+    <div id="ranks-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+            <h3 class="font-black text-slate-900 text-base mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-list text-indigo-600"></i> Rangs de Progression
+            </h3>
+            <div class="space-y-2" id="ranks-list-container">
+                <!-- Injecté par JS -->
+            </div>
+            <button onclick="closeRanksModal()" class="w-full mt-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold rounded-xl text-xs transition-all">Fermer</button>
+        </div>
+    </div>
+
+    <!-- =================== MODAL: NOTIFICATION RPG PERSONNALISÉE =================== -->
+    <div id="notification-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <div id="notification-icon" class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-lg mx-auto mb-4">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <h3 id="notification-title" class="font-black text-slate-900 text-base mb-1.5">Notification</h3>
+            <p id="notification-msg" class="text-xs text-slate-500 mb-6 leading-relaxed"></p>
+            <button onclick="closeNotification()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-sm transition-all">Continuer</button>
+        </div>
+    </div>
+
+    <script>
+        const RANGS = [
+            { level: 1, xpNeeded: 300, name: "Débutant • Bronze" },
+            { level: 2, xpNeeded: 400, name: "Débutant • Argent" },
+            { level: 3, xpNeeded: 500, name: "Débutant • Or" },
+            { level: 4, xpNeeded: 600, name: "Initié • Bronze" },
+            { level: 5, xpNeeded: 700, name: "Initié • Argent" },
+            { level: 6, xpNeeded: 850, name: "Initié • Or" },
+            { level: 7, xpNeeded: 1000, name: "Meneur • Bronze" }
+        ];
+
+        // Configuration exacte de vos 11 habitudes
+        const DEFAULT_HABITS = [
+            { id: 'h1', name: 'Anglais', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h2', name: 'Alternance search', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h3', name: 'Exo dos', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h4', name: 'Voltaire', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h5', name: 'Math train IAE', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h6', name: 'Bilan de la journée', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h7', name: 'réflexion', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h8', name: 'Sport', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h9', name: 'Film VO', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h10', name: 'Tâche exceptionnelle', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h11', name: 'Ranger chaque choses que je prends', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' }
+        ];
+
+        // Mock de données de la Semaine 1 pour historique
+        const MOCK_S1_HABITS = [
+            { id: 'h1', name: 'Anglais', days: { lun: 'très bien', mar: 'très bien', mer: 'none', jeu: 'none', ven: 'très bien', sam: 'none', dim: 'none' }, kanban: 'moyen', notes: 'Pratique régulière' },
+            { id: 'h2', name: 'Alternance search', days: { lun: 'très bien', mar: 'none', mer: 'correctement', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: 'Chercher de nouvelles offres' },
+            { id: 'h3', name: 'Exo dos', days: { lun: 'très bien', mar: 'très bien', mer: 'très bien', jeu: 'très bien', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'pasmal', notes: 'Moins de douleurs' },
+            { id: 'h4', name: 'Voltaire', days: { lun: 'correctement', mar: 'none', mer: 'none', jeu: 'correctement', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: 'Orthographe' },
+            { id: 'h5', name: 'Math train IAE', days: { lun: 'none', mar: 'très bien', mer: 'none', jeu: 'none', ven: 'très bien', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: 'Entraînement logique' },
+            { id: 'h6', name: 'Bilan de la journée', days: { lun: 'très bien', mar: 'très bien', mer: 'très bien', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'pasmal', notes: 'Fait le soir' },
+            { id: 'h7', name: 'réflexion', days: { lun: 'partiellement', mar: 'none', mer: 'none', jeu: 'partiellement', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: 'Prendre du temps' },
+            { id: 'h8', name: 'Sport', days: { lun: 'none', mar: 'très bien', mer: 'none', jeu: 'très bien', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'pasmal', notes: 'Séance intense' },
+            { id: 'h9', name: 'Film VO', days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h10', name: 'Tâche exceptionnelle', days: { lun: 'très bien', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' }, kanban: 'mauvais', notes: '' },
+            { id: 'h11', name: 'Ranger chaque choses que je prends', days: { lun: 'correctement', mar: 'correctement', mer: 'correctement', jeu: 'correctement', ven: 'correctement', sam: 'none', dim: 'none' }, kanban: 'pasmal', notes: 'Ancrage en cours' }
+        ];
+
+        const DEFAULT_STATE = {
+            level: 1,
+            xp: 290, 
+            record: 45, 
+            worstScore: 0,
+            average: 23, 
+            wastedTime: 280, 
+            habits: JSON.parse(JSON.stringify(DEFAULT_HABITS)),
+            learnings: [],
+            reflections: {
+                difficulties: "",
+                events: "",
+                strategy: ""
+            },
+            history: [
+                {
+                    week: 'Semaine 1',
+                    version: 'V1',
+                    date: '22 juin 2026',
+                    reward: 'Un bon resto, un ciné, etc.',
+                    wastedTime: 280,
+                    score: 45,
+                    snapshot: {
+                        habits: MOCK_S1_HABITS,
+                        reflections: {
+                            difficulties: "Manque de régularité sur l'Anglais en milieu de semaine.",
+                            events: "Déplacements non prévus le mercredi après-midi.",
+                            strategy: "Bloquer un créneau fixe de 30 minutes chaque matin."
+                        },
+                        learnings: [
+                            "J'ai appris que l'exo du dos est plus simple si fait dès le réveil."
+                        ]
+                    }
+                }
+            ],
+            showPersonalization: true
+        };
+
+        let state = {};
+        let activeArchiveIndex = null; // null = semaine active courante
+        let activeQualitySelection = { habitId: null, dayKey: null };
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function initState() {
+            const saved = localStorage.getItem('disciplinerpg_habits_tracker_state');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                    if (!state.habits || state.habits.length === 0) state.habits = JSON.parse(JSON.stringify(DEFAULT_HABITS));
+                    if (!state.history) state.history = DEFAULT_STATE.history;
+                    if (!state.reflections) state.reflections = DEFAULT_STATE.reflections;
+                    if (!state.learnings) state.learnings = [];
+                    if (state.record === undefined) state.record = 45;
+                    if (state.xp === undefined) state.xp = 290;
+                    if (state.level === undefined) state.level = 1;
+                    
+                    if (state.history[0] && !state.history[0].snapshot) {
+                        state.history[0].snapshot = {
+                            habits: MOCK_S1_HABITS,
+                            reflections: {
+                                difficulties: "Manque de régularité sur l'Anglais en milieu de semaine.",
+                                events: "Déplacements non prévus le mercredi après-midi.",
+                                strategy: "Bloquer un créneau fixe de 30 minutes chaque matin."
+                            },
+                            learnings: ["J'ai appris que l'exo du dos est plus simple si fait dès le réveil."]
+                        };
+                    }
+                } catch(e) {
+                    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                }
+            } else {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            }
+            saveState();
+        }
+
+        function saveState() {
+            if (activeArchiveIndex === null) {
+                localStorage.setItem('disciplinerpg_habits_tracker_state', JSON.stringify(state));
+            }
+        }
+
+        function getActiveHabits() {
+            if (activeArchiveIndex !== null) {
+                return state.history[activeArchiveIndex].snapshot.habits || [];
+            }
+            return state.habits;
+        }
+
+        function getActiveReflections() {
+            if (activeArchiveIndex !== null) {
+                return state.history[activeArchiveIndex].snapshot.reflections || { difficulties: "", events: "", strategy: "" };
+            }
+            return state.reflections;
+        }
+
+        function getActiveLearnings() {
+            if (activeArchiveIndex !== null) {
+                return state.history[activeArchiveIndex].snapshot.learnings || [];
+            }
+            return state.learnings;
+        }
+
+        function renderStats() {
+            document.getElementById('stat-record').innerText = `${state.record}%`;
+            document.getElementById('stat-worst').innerText = `${state.worstScore}%`;
+            document.getElementById('stat-average').innerText = `${state.average}%`;
+            document.getElementById('stat-wasted-time').innerText = `${state.wastedTime} min`;
+
+            const currentRang = RANGS.find(r => r.level === state.level) || RANGS[RANGS.length - 1];
+            document.getElementById('rank-badge').innerText = `Rang ${state.level}`;
+            document.getElementById('rank-title').innerText = currentRang.name;
+            
+            document.getElementById('xp-text').innerText = `${state.xp} / ${currentRang.xpNeeded} XP`;
+            const percentage = Math.min(100, Math.round((state.xp / currentRang.xpNeeded) * 100));
+            document.getElementById('xp-percentage').innerText = `${percentage}%`;
+            document.getElementById('xp-bar').style.width = `${percentage}%`;
+        }
+
+        function calculateDailyAverage(dayKey, habitsList) {
+            if (!habitsList || habitsList.length === 0) return 0;
+            let sumPoints = 0;
+            let countableHabits = 0;
+            
+            habitsList.forEach(h => {
+                const status = h.days[dayKey] || 'none';
+                if (status === 'exempté') {
+                    return; // Complètement exclu de l'évaluation du jour
+                }
+                countableHabits++;
+                if (status === 'très bien') sumPoints += 100;
+                else if (status === 'correctement') sumPoints += 75;
+                else if (status === 'partiellement') sumPoints += 50;
+                else if (status === 'inefficace') sumPoints += 25;
+            });
+            if (countableHabits === 0) return 0;
+            return Math.round(sumPoints / countableHabits);
+        }
+
+        function renderHabitsGrid() {
+            const tbody = document.getElementById('habits-table-body');
+            tbody.innerHTML = '';
+
+            const currentHabits = getActiveHabits();
+            let totalCheckable = 0;
+            let totalChecked = 0;
+
+            currentHabits.forEach(habit => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/40 transition-all";
+
+                const daysHtml = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'].map(day => {
+                    const status = habit.days[day] || 'none';
+                    let btnClass = 'bg-slate-100 hover:bg-slate-200 border-slate-300';
+                    let icon = '';
+
+                    if (status !== 'exempté') {
+                        totalCheckable++;
+                    }
+
+                    if (status === 'très bien') {
+                        btnClass = 'bg-emerald-500 border-emerald-600 text-white shadow-xs';
+                        icon = '<i class="fa-solid fa-fire text-[10px]"></i>';
+                        totalChecked++;
+                    } else if (status === 'correctement') {
+                        btnClass = 'bg-sky-500 border-sky-600 text-white shadow-xs';
+                        icon = '<i class="fa-solid fa-bolt text-[10px]"></i>';
+                        totalChecked++;
+                    } else if (status === 'partiellement') {
+                        btnClass = 'bg-amber-500 border-amber-600 text-white shadow-xs';
+                        icon = '<i class="fa-solid fa-triangle-exclamation text-[10px]"></i>';
+                        totalChecked++;
+                    } else if (status === 'inefficace') {
+                        btnClass = 'bg-rose-500 border-rose-600 text-white shadow-xs';
+                        icon = '<i class="fa-solid fa-xmark text-[10px]"></i>';
+                        totalChecked++;
+                    } else if (status === 'exempté') {
+                        btnClass = 'bg-slate-200 border-slate-300 text-slate-500 font-extrabold shadow-xs';
+                        icon = '<span class="text-xs leading-none">-</span>';
+                    }
+
+                    const clickAction = activeArchiveIndex !== null 
+                        ? `showNotification('Mode Lecture Seule', 'Vous ne pouvez pas modifier une semaine passée.', 'fa-lock', 'bg-amber-100', 'text-amber-600')` 
+                        : `openEfficiencySelector('${habit.id}', '${day}')`;
+
+                    return `
+                        <td class="py-3 text-center">
+                            <button onclick="${clickAction}" class="w-7 h-7 rounded-full border flex items-center justify-center transition-all scale-100 active:scale-90 ${btnClass}">
+                                ${icon}
+                            </button>
+                        </td>
+                    `;
+                }).join('');
+
+                const daysValues = Object.keys(habit.days);
+                let countableDaysCount = 0;
+                let sumPoints = 0;
+                let hasValidData = false;
+
+                daysValues.forEach(day => {
+                    const status = habit.days[day] || 'none';
+                    if (status === 'exempté') return;
+                    
+                    countableDaysCount++;
+                    if (status !== 'none') {
+                        hasValidData = true;
+                        if (status === 'très bien') sumPoints += 100;
+                        if (status === 'correctement') sumPoints += 75;
+                        if (status === 'partiellement') sumPoints += 50;
+                        if (status === 'inefficace') sumPoints += 25;
+                    }
+                });
+
+                let scoreText = '0%';
+                let textClass = 'text-slate-400';
+
+                if (hasValidData && countableDaysCount > 0) {
+                    const score = Math.round(sumPoints / countableDaysCount);
+                    scoreText = `${score}%`;
+                    if (score >= 80) textClass = 'text-emerald-600 font-extrabold';
+                    else if (score >= 60) textClass = 'text-sky-600 font-extrabold';
+                    else if (score >= 40) textClass = 'text-amber-600 font-extrabold';
+                    else textClass = 'text-rose-600 font-extrabold';
+                }
+
+                // Render with inline editable title input
+                const titleDisabled = activeArchiveIndex !== null ? 'disabled' : '';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 w-1/3">
+                        <input type="text" value="${habit.name}" ${titleDisabled} 
+                            oninput="silentUpdateHabitName('${habit.id}', this.value)" 
+                            onblur="saveAndSyncHabits()" 
+                            class="bg-transparent font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-indigo-500 rounded-xl px-2 py-1 outline-none transition-all w-full border border-transparent hover:border-slate-200 focus:border-slate-300">
+                    </td>
+                    ${daysHtml}
+                    <td class="py-3 px-4 text-right text-xs font-black ${textClass}">
+                        ${scoreText}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderDailyAveragesFooter(currentHabits);
+
+            const totalPct = totalCheckable > 0 ? Math.round((totalChecked / totalCheckable) * 100) : 0;
+            document.getElementById('current-completion-percentage').innerText = `Complétion : ${totalPct}%`;
+        }
+
+        function renderDailyAveragesFooter(habitsList) {
+            const tfoot = document.getElementById('habits-table-foot');
+            tfoot.innerHTML = '';
+
+            const days = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'];
+            const averagesHtml = days.map(day => {
+                const avg = calculateDailyAverage(day, habitsList);
+                
+                let badgeClass = "text-slate-400 font-bold";
+                if (avg >= 80) badgeClass = "text-emerald-600 font-black bg-emerald-50 border border-emerald-100 rounded-lg px-1.5 py-0.5";
+                else if (avg >= 50) badgeClass = "text-sky-600 font-extrabold bg-sky-50 border border-sky-100 rounded-lg px-1.5 py-0.5";
+                else if (avg > 0) badgeClass = "text-amber-600 font-bold bg-amber-50 border border-amber-100 rounded-lg px-1.5 py-0.5";
+
+                return `
+                    <td class="py-4 text-center">
+                        <span class="text-xs ${badgeClass}">${avg > 0 ? avg + '%' : '-'}</span>
+                    </td>
+                `;
+            }).join('');
+
+            let totalDaysWithData = 0;
+            let sumWeeklyAvg = 0;
+            days.forEach(day => {
+                const avg = calculateDailyAverage(day, habitsList);
+                if (avg > 0) {
+                    sumWeeklyAvg += avg;
+                    totalDaysWithData++;
+                }
+            });
+            const weeklyOverallAvg = totalDaysWithData > 0 ? Math.round(sumWeeklyAvg / totalDaysWithData) : 0;
+            
+            let overallClass = "text-slate-400";
+            if (weeklyOverallAvg >= 80) overallClass = "text-emerald-600 font-black";
+            else if (weeklyOverallAvg >= 50) overallClass = "text-sky-600 font-extrabold";
+            else if (weeklyOverallAvg > 0) overallClass = "text-amber-600 font-bold";
+
+            const tr = document.createElement('tr');
+            tr.className = "bg-slate-50/80 font-black border-t-2 border-slate-200/60";
+            tr.innerHTML = `
+                <td class="py-4 px-4 text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                    📈 MOYENNE QUOTIDIENNE
+                </td>
+                ${averagesHtml}
+                <td class="py-4 px-4 text-right text-xs font-black ${overallClass}">
+                    ${weeklyOverallAvg > 0 ? weeklyOverallAvg + '%' : '0%'}
+                </td>
+            `;
+            tfoot.appendChild(tr);
+        }
+
+        function renderReflectionsAndLearnings() {
+            const reflections = getActiveReflections();
+            const learnings = getActiveLearnings();
+
+            const tDiff = document.getElementById('ref-difficulties');
+            const tEvents = document.getElementById('ref-events');
+            const tStrategy = document.getElementById('ref-strategy');
+            
+            tDiff.disabled = activeArchiveIndex !== null;
+            tEvents.disabled = activeArchiveIndex !== null;
+            tStrategy.disabled = activeArchiveIndex !== null;
+
+            if (document.activeElement !== tDiff) tDiff.value = reflections.difficulties || "";
+            if (document.activeElement !== tEvents) tEvents.value = reflections.events || "";
+            if (document.activeElement !== tStrategy) tStrategy.value = reflections.strategy || "";
+
+            const container = document.getElementById('learnings-list-container');
+            container.innerHTML = '';
+
+            if (learnings.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-[10px] font-semibold text-slate-400">
+                        <i class="fa-solid fa-book-open text-base mb-1 block opacity-40"></i>
+                        Aucun fait enregistré pour le moment. Saisissez vos découvertes !
+                    </div>
+                `;
+                return;
+            }
+
+            learnings.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 text-xs text-slate-700 font-bold group";
+                
+                const deleteAction = activeArchiveIndex !== null 
+                    ? `showNotification(\'Mode Lecture Seule\', \'Impossible de modifier les archives.\', \'fa-lock\', \'bg-amber-100\', \'text-amber-600\')`
+                    : `deleteLearning(${index})`;
+
+                div.innerHTML = `
+                    <span class="truncate"><i class="fa-solid fa-lightbulb text-amber-500 mr-1.5 text-[10px]"></i> ${item}</span>
+                    <button onclick="${deleteAction}" class="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function saveReflections() {
+            if (activeArchiveIndex === null) {
+                state.reflections.difficulties = document.getElementById('ref-difficulties').value;
+                state.reflections.events = document.getElementById('ref-events').value;
+                state.reflections.strategy = document.getElementById('ref-strategy').value;
+                saveState();
+            }
+        }
+
+        function addLearning() {
+            if (activeArchiveIndex !== null) return;
+            const val = document.getElementById('add-learning-input').value.trim();
+            if (val === '') return;
+            state.learnings.push(val);
+            addXP(15);
+            document.getElementById('add-learning-input').value = '';
+            saveState();
+            renderReflectionsAndLearnings();
+            renderStats();
+            playTone(880, 'sine', 0.1);
+        }
+
+        function deleteLearning(index) {
+            if (activeArchiveIndex !== null) return;
+            state.learnings.splice(index, 1);
+            removeXP(15);
+            saveState();
+            renderReflectionsAndLearnings();
+            renderStats();
+        }
+
+        function silentUpdateHabitName(id, value) {
+            if (activeArchiveIndex !== null) return;
+            const h = state.habits.find(x => x.id === id);
+            if (h) {
+                h.name = value;
+                saveState();
+            }
+        }
+
+        function saveAndSyncHabits() {
+            renderKanban();
+            renderPersonalization();
+        }
+
+        function renderPersonalization() {
+            const grid = document.getElementById('personalization-grid');
+            grid.innerHTML = '';
+
+            const currentHabits = getActiveHabits();
+
+            currentHabits.forEach((habit, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between space-y-3 shadow-xs relative group";
+                
+                const deleteAction = activeArchiveIndex !== null 
+                    ? `showNotification(\'Mode Lecture Seule\', \'Impossible de modifier les archives.\', \'fa-lock\', \'bg-amber-100\', \'text-amber-600\')`
+                    : `deleteHabit('${habit.id}')`;
+
+                const inputDisabled = activeArchiveIndex !== null ? 'disabled' : '';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">HABITUDE ${index + 1}</span>
+                        <button onclick="${deleteAction}" class="text-slate-300 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    </div>
+                    <input type="text" value="${habit.name}" ${inputDisabled} oninput="updateHabitName('${habit.id}', this.value)" class="w-full bg-white border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:ring-1 focus:ring-indigo-500 outline-none">
+                `;
+                grid.appendChild(card);
+            });
+
+            if (activeArchiveIndex === null) {
+                const addCard = document.createElement('button');
+                addCard.onclick = createNewHabit;
+                addCard.className = "border-2 border-dashed border-slate-200 hover:border-indigo-400 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-1.5 transition-all text-slate-400 hover:text-indigo-600 min-h-[110px]";
+                addCard.innerHTML = `
+                    <div class="w-8 h-8 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-sm font-black"><i class="fa-solid fa-plus"></i></div>
+                    <span class="text-xs font-bold">Ajouter une habitude</span>
+                `;
+                grid.appendChild(addCard);
+            }
+        }
+
+        function updateHabitName(id, value) {
+            if (activeArchiveIndex !== null) return;
+            const h = state.habits.find(x => x.id === id);
+            if (h) {
+                h.name = value;
+                saveState();
+                renderHabitsGrid();
+                renderKanban();
+            }
+        }
+
+        function createNewHabit() {
+            if (activeArchiveIndex !== null) return;
+            const nextIndex = state.habits.length + 1;
+            state.habits.push({
+                id: 'h-' + Date.now(),
+                name: `Habitude ${nextIndex}`,
+                days: { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' },
+                kanban: 'mauvais',
+                notes: ''
+            });
+            saveState();
+            renderHabitsGrid();
+            renderPersonalization();
+            renderKanban();
+            playTone(523.25, 'sine', 0.1);
+        }
+
+        function deleteHabit(id) {
+            if (activeArchiveIndex !== null) return;
+            state.habits = state.habits.filter(x => x.id !== id);
+            saveState();
+            renderHabitsGrid();
+            renderPersonalization();
+            renderKanban();
+        }
+
+        function togglePersonalization() {
+            state.showPersonalization = !state.showPersonalization;
+            saveState();
+            applyPersonalizationVisibility();
+        }
+
+        function applyPersonalizationVisibility() {
+            const container = document.getElementById('personalization-container');
+            const btn = document.getElementById('personalize-toggle-btn');
+            if (state.showPersonalization) {
+                container.classList.remove('hidden');
+                btn.innerHTML = 'Masquer <i class="fa-solid fa-chevron-up"></i>';
+            } else {
+                container.classList.add('hidden');
+                btn.innerHTML = 'Afficher <i class="fa-solid fa-chevron-down"></i>';
+            }
+        }
+
+        function renderKanban() {
+            const cols = {
+                mauvais: document.getElementById('kanban-mauvais'),
+                moyen: document.getElementById('kanban-moyen'),
+                pasmal: document.getElementById('kanban-pasmal'),
+                excellent: document.getElementById('kanban-excellent')
+            };
+
+            Object.values(cols).forEach(col => col.innerHTML = '');
+
+            let counts = { mauvais: 0, moyen: 0, pasmal: 0, excellent: 0 };
+            const currentHabits = getActiveHabits();
+
+            currentHabits.forEach(habit => {
+                const colKey = habit.kanban || 'mauvais';
+                counts[colKey]++;
+
+                const card = document.createElement('div');
+                card.className = "bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs space-y-3 animate-fade-in";
+                
+                const disabledAttr = activeArchiveIndex !== null ? 'disabled' : '';
+
+                card.innerHTML = `
+                    <div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">HABITUDE</p>
+                        <h4 class="text-xs font-black text-slate-900 mt-0.5">${habit.name}</h4>
+                    </div>
+                    
+                    <textarea placeholder="Aucune note..." ${disabledAttr} oninput="saveKanbanNote('${habit.id}', this.value)" class="w-full bg-slate-50/50 border border-slate-100 rounded-xl p-2.5 text-xs text-slate-600 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none resize-none h-16">${habit.notes || ''}</textarea>
+
+                    <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Colonner :</span>
+                        <select ${disabledAttr} onchange="moveKanbanHabit('${habit.id}', this.value)" class="bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 py-1 px-2 focus:ring-1 focus:ring-indigo-500 outline-none">
+                            <option value="mauvais" ${colKey === 'mauvais' ? 'selected' : ''}>🔴 Mauvais</option>
+                            <option value="moyen" ${colKey === 'moyen' ? 'selected' : ''}>🟡 Moyen</option>
+                            <option value="pasmal" ${colKey === 'pasmal' ? 'selected' : ''}>🟢 Pas Mal</option>
+                            <option value="excellent" ${colKey === 'excellent' ? 'selected' : ''}>🟣 Excellent</option>
+                        </select>
+                    </div>
+                `;
+                cols[colKey].appendChild(card);
+            });
+
+            document.getElementById('count-mauvais').innerText = counts.mauvais;
+            document.getElementById('count-moyen').innerText = counts.moyen;
+            document.getElementById('count-pasmal').innerText = counts.pasmal;
+            document.getElementById('count-excellent').innerText = counts.excellent;
+        }
+
+        function selectArchiveWeek(index) {
+            activeArchiveIndex = index;
+            const historyItem = state.history[index];
+            
+            // Activer le bandeau d'archive orange
+            const banner = document.getElementById('archive-banner');
+            document.getElementById('archive-banner-week').innerText = `${historyItem.week}`;
+            banner.classList.remove('hidden');
+
+            // Masquer les boutons d'édition active
+            document.getElementById('add-learning-input').disabled = true;
+            document.getElementById('add-learning-btn').disabled = true;
+            document.getElementById('learning-input-block').classList.add('opacity-40');
+            document.getElementById('personalization-main-card').classList.add('hidden');
+            document.getElementById('validate-week-panel').classList.add('hidden');
+            document.getElementById('new-version-action-block').classList.add('hidden');
+            document.getElementById('import-export-actions').classList.add('hidden');
+            document.getElementById('direct-add-habit-btn').classList.add('hidden');
+
+            // Re-charger les grilles sur le snapshot archivé
+            renderHabitsGrid();
+            renderReflectionsAndLearnings();
+            renderPersonalization();
+            renderKanban();
+
+            // Naviguer vers Plan d'Attaque pour voir la grille
+            switchTab('plan-attaque');
+            
+            playTone(440, 'sine', 0.15);
+        }
+
+        function exitArchiveMode() {
+            activeArchiveIndex = null;
+            
+            document.getElementById('archive-banner').classList.add('hidden');
+
+            // Restaurer les contrôles actifs
+            document.getElementById('add-learning-input').disabled = false;
+            document.getElementById('add-learning-btn').disabled = false;
+            document.getElementById('learning-input-block').classList.remove('opacity-40');
+            document.getElementById('personalization-main-card').classList.remove('hidden');
+            document.getElementById('validate-week-panel').classList.remove('hidden');
+            document.getElementById('new-version-action-block').classList.remove('hidden');
+            document.getElementById('import-export-actions').classList.remove('hidden');
+            document.getElementById('direct-add-habit-btn').classList.remove('hidden');
+
+            renderHabitsGrid();
+            renderReflectionsAndLearnings();
+            renderPersonalization();
+            renderKanban();
+
+            switchTab('historique');
+
+            playTone(523.25, 'sine', 0.1);
+        }
+
+        function moveKanbanHabit(id, column) {
+            if (activeArchiveIndex !== null) return;
+            const h = state.habits.find(x => x.id === id);
+            if (h) {
+                h.kanban = column;
+                saveState();
+                renderKanban();
+            }
+        }
+
+        function saveKanbanNote(id, note) {
+            if (activeArchiveIndex !== null) return;
+            const h = state.habits.find(x => x.id === id);
+            if (h) {
+                h.notes = note;
+                saveState();
+            }
+        }
+
+        function openEfficiencySelector(habitId, dayKey) {
+            if (activeArchiveIndex !== null) return;
+            activeQualitySelection = { habitId, dayKey };
+            const habit = state.habits.find(x => x.id === habitId);
+            const daysNames = { lun: 'Lundi', mar: 'Mardi', mer: 'Mercredi', jeu: 'Jeudi', ven: 'Vendredi', sam: 'Samedi', dim: 'Dimanche' };
+            
+            document.getElementById('efficiency-habit-title').innerText = habit.name;
+            document.getElementById('efficiency-day-title').innerText = daysNames[dayKey];
+            document.getElementById('efficiency-selector-modal').classList.remove('hidden');
+        }
+
+        function closeEfficiencySelector() {
+            document.getElementById('efficiency-selector-modal').classList.add('hidden');
+        }
+
+        function selectEfficiency(status) {
+            if (activeArchiveIndex !== null) return;
+            const h = state.habits.find(x => x.id === activeQualitySelection.habitId);
+            if (!h) return;
+
+            const oldStatus = h.days[activeQualitySelection.dayKey] || 'none';
+            h.days[activeQualitySelection.dayKey] = status;
+
+            // Rollback XP de l'ancien statut
+            if (oldStatus === 'très bien') removeXP(15);
+            else if (oldStatus === 'correctement') removeXP(10);
+            else if (oldStatus === 'partiellement') removeXP(5);
+            else if (oldStatus === 'inefficace') removeXP(2);
+
+            // Ajout XP du nouveau statut
+            if (status === 'très bien') { addXP(15); playTone(659.25, 'sine', 0.1); }
+            else if (status === 'correctement') { addXP(10); playTone(523.25, 'sine', 0.1); }
+            else if (status === 'partiellement') { addXP(5); playTone(392.00, 'sine', 0.1); }
+            else if (status === 'inefficace') { addXP(2); playTone(261.63, 'triangle', 0.15); }
+
+            saveState();
+            renderStats();
+            renderHabitsGrid();
+            closeEfficiencySelector();
+        }
+
+        function addXP(amount) {
+            if (activeArchiveIndex !== null) return;
+            state.xp += amount;
+            let currentRang = RANGS.find(r => r.level === state.level) || RANGS[RANGS.length - 1];
+            
+            while (state.xp >= currentRang.xpNeeded) {
+                state.xp -= currentRang.xpNeeded;
+                state.level++;
+                currentRang = RANGS.find(r => r.level === state.level) || RANGS[RANGS.length - 1];
+                playLevelUpSound();
+                showNotification("MONTÉE DE RANG !", `Félicitations ! Votre dévouement quotidien paye ! Vous venez d'accéder au Rang ${state.level} : ${currentRang.name} !`, "fa-crown", "bg-amber-100", "text-amber-600");
+            }
+        }
+
+        function removeXP(amount) {
+            if (activeArchiveIndex !== null) return;
+            state.xp -= amount;
+            while (state.xp < 0) {
+                if (state.level > 1) {
+                    state.level--;
+                    const currentRang = RANGS.find(r => r.level === state.level) || RANGS[RANGS.length - 1];
+                    state.xp += currentRang.xpNeeded;
+                } else {
+                    state.xp = 0;
+                    break;
+                }
+            }
+        }
+
+        function playLevelUpSound() {
+            playTone(523.25, 'sine', 0.15);
+            setTimeout(() => playTone(659.25, 'sine', 0.15), 100);
+            setTimeout(() => playTone(783.99, 'sine', 0.15), 200);
+            setTimeout(() => playTone(1046.50, 'sine', 0.35), 300);
+        }
+
+        function openRanksModal() {
+            const container = document.getElementById('ranks-list-container');
+            container.innerHTML = '';
+            RANGS.forEach(r => {
+                const isCurrent = r.level === state.level;
+                const activeClass = isCurrent ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-100';
+                const currentBadge = isCurrent ? '<span class="bg-indigo-600 text-white text-[9px] px-2 py-0.5 rounded-full uppercase font-black">Actuel</span>' : '';
+                
+                const div = document.createElement('div');
+                div.className = `p-3.5 border rounded-xl flex justify-between items-center text-xs font-bold ${activeClass}`;
+                div.innerHTML = `
+                    <div>
+                        <p class="font-extrabold text-slate-900">Rang ${r.level} : ${r.name}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">${r.xpNeeded} XP requis</p>
+                    </div>
+                    ${currentBadge}
+                `;
+                container.appendChild(div);
+            });
+            document.getElementById('ranks-modal').classList.remove('hidden');
+        }
+
+        function closeRanksModal() {
+            document.getElementById('ranks-modal').classList.add('hidden');
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+
+            if (state.history.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-xs font-bold text-slate-400">
+                            Aucune semaine enregistrée dans l'historique de votre version active.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            state.history.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-indigo-50/60 transition-all cursor-pointer select-none group";
+                tr.onclick = () => selectArchiveWeek(index);
+
+                tr.innerHTML = `
+                    <td class="py-4 px-4 font-black text-slate-950 flex items-center gap-2 group-hover:text-indigo-600">
+                        <i class="fa-solid fa-folder-open text-slate-300 group-hover:text-indigo-500 transition-colors text-xs"></i>
+                        <span>${item.week}</span>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <span class="bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] px-2.5 py-0.5 rounded-full font-extrabold">${item.version}</span>
+                    </td>
+                    <td class="py-4 px-4 text-slate-500">${item.date}</td>
+                    <td class="py-4 px-4 text-slate-500 italic">"${item.reward || 'Aucune'}"</td>
+                    <td class="py-4 px-4 text-center text-amber-600 font-extrabold">${item.wastedTime || 0} min</td>
+                    <td class="py-4 px-4 text-right text-indigo-600 font-black flex items-center justify-end gap-1.5">
+                        <span>${item.score}%</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all"></i>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function validateWeek() {
+            if (activeArchiveIndex !== null) return;
+            const wastedTime = parseInt(document.getElementById('wasted-time-input').value) || 0;
+            const reward = document.getElementById('target-reward-input').value.trim() || 'Aucune';
+
+            let totalCheckable = 0;
+            let totalChecked = 0;
+
+            state.habits.forEach(habit => {
+                Object.values(habit.days).forEach(v => {
+                    if (v !== 'exempté') {
+                        totalCheckable++;
+                        if (v !== 'none') totalChecked++;
+                    }
+                });
+            });
+
+            const score = totalCheckable > 0 ? Math.round((totalChecked / totalCheckable) * 100) : 0;
+            const nextWeekNum = state.history.length + 1;
+
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            const todayStr = new Date().toLocaleDateString('fr-FR', options);
+
+            const currentSnapshot = {
+                habits: JSON.parse(JSON.stringify(state.habits)),
+                reflections: JSON.parse(JSON.stringify(state.reflections)),
+                learnings: JSON.parse(JSON.stringify(state.learnings))
+            };
+
+            state.history.push({
+                week: `Semaine ${nextWeekNum}`,
+                version: `V${state.level}`,
+                date: todayStr,
+                reward: reward,
+                wastedTime: wastedTime,
+                score: score,
+                snapshot: currentSnapshot
+            });
+
+            state.wastedTime = wastedTime;
+            
+            const allScores = state.history.map(h => h.score);
+            state.worstScore = Math.min(...allScores);
+            state.average = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+            if (score > state.record) {
+                state.record = score;
+            }
+
+            state.habits.forEach(habit => {
+                habit.days = { lun: 'none', mar: 'none', mer: 'none', jeu: 'none', ven: 'none', sam: 'none', dim: 'none' };
+            });
+
+            document.getElementById('wasted-time-input').value = '';
+            document.getElementById('target-reward-input').value = '';
+            state.learnings = [];
+            state.reflections = { difficulties: "", events: "", strategy: "" };
+
+            saveState();
+            renderStats();
+            renderHabitsGrid();
+            renderReflectionsAndLearnings();
+            renderHistory();
+
+            playTone(523.25, 'sine', 0.2);
+            showNotification("Semaine Validée !", `Félicitations pour vos efforts ! La semaine a été sauvegardée avec un score final de ${score}%. Un nouveau cycle commence !`, "fa-circle-check", "bg-emerald-100", "text-emerald-600");
+        }
+
+        function triggerNewVersion() {
+            if (activeArchiveIndex !== null) return;
+            state.history = [];
+            state.record = 0;
+            state.worstScore = 0;
+            state.average = 0;
+            state.wastedTime = 0;
+            saveState();
+            renderStats();
+            renderHistory();
+            showNotification("Version Lancée !", "Bravo d'avoir franchi cette nouvelle étape ! Vos compteurs hebdomadaires ont été réinitialisés pour ce nouveau palier.", "fa-arrow-up-right-dots", "bg-indigo-100", "text-indigo-600");
+        }
+
+        function clearAllHistory() {
+            if (activeArchiveIndex !== null) return;
+            state.history = [];
+            state.record = 0;
+            state.worstScore = 0;
+            state.average = 0;
+            state.wastedTime = 0;
+            saveState();
+            renderStats();
+            renderHistory();
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `discipline_rpg_backup_${new Date().toISOString().slice(0,10)}.json`);
+            dlAnchorElem.click();
+        }
+
+        function triggerImport() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.habits && parsed.history) {
+                        state = parsed;
+                        saveState();
+                        renderStats();
+                        renderHabitsGrid();
+                        renderReflectionsAndLearnings();
+                        renderPersonalization();
+                        renderKanban();
+                        renderHistory();
+                        showNotification("Import Réussi", "Vos données RPG ont été injectées avec succès !", "fa-file-import", "bg-indigo-100", "text-indigo-600");
+                    }
+                } catch(err) {
+                    showNotification("Erreur d'import", "Le fichier sélectionné n'est pas un fichier de sauvegarde valide.", "fa-triangle-exclamation", "bg-rose-100", "text-rose-600");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showNotification(title, message, icon, bgClass, textClass) {
+            document.getElementById('notification-title').innerText = title;
+            document.getElementById('notification-msg').innerText = message;
+            
+            const iconContainer = document.getElementById('notification-icon');
+            iconContainer.className = `w-12 h-12 ${bgClass} ${textClass} rounded-2xl flex items-center justify-center text-lg mx-auto mb-4`;
+            iconContainer.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            
+            document.getElementById('notification-modal').classList.remove('hidden');
+        }
+
+        function closeNotification() {
+            document.getElementById('notification-modal').classList.add('hidden');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all";
+            });
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.className = "tab-btn px-4 py-3 text-sm font-extrabold text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 whitespace-nowrap transition-all";
+            
+            document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+        }
+
+        window.onload = function() {
+            initState();
+            renderStats();
+            renderHabitsGrid();
+            renderReflectionsAndLearnings();
+            renderPersonalization();
+            renderKanban();
+            renderHistory();
+            applyPersonalizationVisibility();
+        };
+    </script>
+</body>
+</html>
